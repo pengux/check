@@ -13,7 +13,7 @@ type Validator interface {
 
 // Validatable allows other to fetch and manipulate the data dictonary of a type
 type Validatable interface {
-	GetValidators() map[string][]Validator
+	GetValidators() map[string]map[string]Validator
 }
 
 // ValidationError is of type error which implement error, stringer and json.Unmarshaler interfaces
@@ -27,19 +27,19 @@ func (e ValidationError) String() string {
 }
 
 // ValidationErrors is a map with string and slice of error
-type ValidationErrors map[string][]ValidationError
+type ValidationErrors map[string]map[string]ValidationError
 
 // Validate accepts a ValidatorsGetter, fetch validators with GetValidators() and execute validation on the object
 func Validate(o Validatable) (errs ValidationErrors, hasErr bool) {
 	errs = make(ValidationErrors)
 	for field, validators := range o.GetValidators() {
-		for _, validator := range validators {
+		for key, validator := range validators {
 			if err := validator.Validate(); err != nil {
 				if _, ok := errs[field]; !ok {
-					errs[field] = make([]ValidationError, 0)
+					errs[field] = make(map[string]ValidationError, 0)
 				}
 
-				errs[field] = append(errs[field], ValidationError(err.Error()))
+				errs[field][key] = ValidationError(err.Error())
 				hasErr = true
 			}
 		}

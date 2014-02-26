@@ -29,56 +29,56 @@ type User struct {
 	Birthday time.Time
 }
 
-func (u *User) GetValidators() map[string][]Validator {
-	return map[string][]Validator{
-		"username": []Validator{
-			&NonZero{
+func (u *User) GetValidators() map[string]map[string]Validator {
+	return map[string]map[string]Validator{
+		"username": map[string]Validator{
+			"nonZero": &NonZero{
 				u.Username,
 			},
-			&Regex{
+			"regex": &Regex{
 				`[a-zA-Z0-9]`, // constraint
 				u.Username,    // value to be validated
 			},
 		},
-		"password": []Validator{
-			&NonZero{
+		"password": map[string]Validator{
+			"nonZero": &NonZero{
 				u.Password,
 			},
-			&MinChar{
-				8,          // constraint
-				u.Password, // value to be validated
+			"minChar": &MinChar{
+				8,
+				u.Password,
 			},
 		},
-		"name": []Validator{
-			&NonZero{
+		"name": map[string]Validator{
+			"nonZero": &NonZero{
 				u.Name,
 			},
 		},
-		"age": []Validator{
-			&GreaterThan{
+		"age": map[string]Validator{
+			"greaterThan": &GreaterThan{
 				3,
 				u.Age,
 			},
-			&LowerThan{
+			"lowerThan": &LowerThan{
 				120,
 				u.Age,
 			},
 		},
-		"email": []Validator{
-			&Email{
+		"email": map[string]Validator{
+			"email": &Email{
 				u.Email,
 			},
-			&CustomStringContainValidator{
+			"customStringContainValidator": &CustomStringContainValidator{
 				"test.com",
 				u.Email,
 			},
 		},
-		"birthday": []Validator{
-			&Before{
+		"birthday": map[string]Validator{
+			"before": &Before{
 				time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC),
 				u.Birthday,
 			},
-			&After{
+			"after": &After{
 				time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC),
 				u.Birthday,
 			},
@@ -111,7 +111,6 @@ func TestIntegration(t *testing.T) {
 	}
 
 	// errs, hasErr := Validate(invalidUser)
-	// Marshal errors into json
 	// json, _ := json.MarshalIndent(errs, "", "	")
 	// log.Println(string(json))
 

@@ -6,6 +6,7 @@
 # Folders
 _obj
 _test
+govalid.test
 
 # Architecture specific extensions/prefixes
 *.[568vq]

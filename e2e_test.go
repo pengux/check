@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 type CustomStringContainValidator struct {
@@ -25,6 +26,7 @@ type User struct {
 	Name     string
 	Age      int
 	Email    string
+	Birthday time.Time
 }
 
 func (u *User) GetValidators() map[string][]Validator {
@@ -71,6 +73,16 @@ func (u *User) GetValidators() map[string][]Validator {
 				u.Email,
 			},
 		},
+		"birthday": []Validator{
+			&Before{
+				time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC),
+				u.Birthday,
+			},
+			&After{
+				time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC),
+				u.Birthday,
+			},
+		},
 	}
 }
 
@@ -81,6 +93,7 @@ func TestIntegration(t *testing.T) {
 		"",      // Cannot be empty
 		150,     // Invalid age
 		"@test", // Invalid email address
+		time.Date(1991, time.January, 1, 1, 0, 0, 0, time.UTC), // Invalid date
 	}
 
 	validUser := &User{
@@ -89,6 +102,7 @@ func TestIntegration(t *testing.T) {
 		"Good Name",
 		20,
 		"test@test.com",
+		time.Date(1980, time.January, 1, 1, 0, 0, 0, time.UTC),
 	}
 
 	_, hasErr := Validate(invalidUser)

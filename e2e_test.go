@@ -1,10 +1,23 @@
 package govalid
 
 import (
-	"encoding/json"
-	"log"
+	"fmt"
+	"strings"
 	"testing"
 )
+
+type CustomStringContainValidator struct {
+	Constraint string
+	Value      string
+}
+
+func (v *CustomStringContainValidator) Validate() error {
+	if !strings.Contains(v.Value, v.Constraint) {
+		return fmt.Errorf("the string %v doesn't contain %v", v.Value, v.Constraint)
+	}
+
+	return nil
+}
 
 type User struct {
 	Username string
@@ -53,6 +66,10 @@ func (u *User) GetValidators() map[string][]Validator {
 			&Email{
 				u.Email,
 			},
+			&CustomStringContainValidator{
+				"test.com",
+				u.Email,
+			},
 		},
 	}
 }
@@ -74,16 +91,17 @@ func TestIntegration(t *testing.T) {
 		"test@test.com",
 	}
 
-	errs, hasErr := Validate(invalidUser)
+	_, hasErr := Validate(invalidUser)
 	if !hasErr {
 		t.Errorf("Expected 'invalidUser' to be invalid")
 	}
 
-	log.Println(errs)
-	json, _ := json.MarshalIndent(errs, "", "	")
-	log.Println(string(json))
+	// errs, hasErr := Validate(invalidUser)
+	// Marshal errors into json
+	// json, _ := json.MarshalIndent(errs, "", "	")
+	// log.Println(string(json))
 
-	errs, hasErr = Validate(validUser)
+	_, hasErr = Validate(validUser)
 	if hasErr {
 		t.Errorf("Expected 'validUser' to be valid")
 	}

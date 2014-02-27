@@ -1,9 +1,7 @@
 package govalid
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 	"time"
@@ -117,8 +115,8 @@ func TestIntegration(t *testing.T) {
 		t.Errorf("Expected proper error message")
 	}
 
-	json, _ := json.MarshalIndent(errMessages, "", "	")
-	log.Println(string(json))
+	// json, _ := json.MarshalIndent(errMessages, "", "	")
+	// log.Println(string(json))
 
 	_, hasErr = validUser.Validate()
 	if hasErr {

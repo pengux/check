@@ -1,7 +1,6 @@
 package check
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"testing"
@@ -13,12 +12,12 @@ type CustomStringContainValidator struct {
 	Value      string
 }
 
-func (v CustomStringContainValidator) Validate() (err error, params []string) {
+func (v CustomStringContainValidator) Validate() Error {
 	if !strings.Contains(v.Value, v.Constraint) {
-		return fmt.Errorf("customStringContainValidator"), []string{v.Value, v.Constraint}
+		return &ValidationError{"customStringContainValidator", []interface{}{v.Value, v.Constraint}}
 	}
 
-	return nil, params
+	return nil
 }
 
 type User struct {

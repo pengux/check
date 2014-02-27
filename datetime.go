@@ -1,9 +1,6 @@
 package check
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 // Before check if a time in Value is before the time in Constraint
 type Before struct {
@@ -12,12 +9,12 @@ type Before struct {
 }
 
 // Validate check if a time in Value is before the time in Constraint
-func (v Before) Validate() (err error, params []string) {
+func (v Before) Validate() Error {
 	if !v.Value.Before(v.Constraint) {
-		return fmt.Errorf("before"), []string{v.Value.String(), v.Constraint.String()}
+		return &ValidationError{"before", []interface{}{v.Value.String(), v.Constraint.String()}}
 	}
 
-	return nil, params
+	return nil
 }
 
 // After check if a time in Value is before the time in Constraint
@@ -27,10 +24,10 @@ type After struct {
 }
 
 // Validate check if a time in Value is after the time in Constraint
-func (v After) Validate() (err error, params []string) {
+func (v After) Validate() Error {
 	if !v.Value.After(v.Constraint) {
-		return fmt.Errorf("after"), []string{v.Value.String(), v.Constraint.String()}
+		return &ValidationError{"after", []interface{}{v.Value.String(), v.Constraint.String()}}
 	}
 
-	return nil, params
+	return nil
 }

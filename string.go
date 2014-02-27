@@ -1,7 +1,6 @@
 package check
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,12 +13,12 @@ type MinChar struct {
 }
 
 // Validate check value against constraint
-func (v MinChar) Validate() (err error, params []string) {
+func (v MinChar) Validate() Error {
 	if len(v.Value) < v.Constraint {
-		return fmt.Errorf("minChar"), []string{strconv.Itoa(v.Constraint)}
+		return &ValidationError{"minChar", []interface{}{strconv.Itoa(v.Constraint)}}
 	}
 
-	return nil, params
+	return nil
 }
 
 // MaxChar validates that a string must have a length maximum of its constraint
@@ -29,12 +28,12 @@ type MaxChar struct {
 }
 
 // Validate check value against constraint
-func (v MaxChar) Validate() (err error, params []string) {
+func (v MaxChar) Validate() Error {
 	if len(v.Value) > v.Constraint {
-		return fmt.Errorf("maxChar"), []string{strconv.Itoa(v.Constraint)}
+		return &ValidationError{"maxChar", []interface{}{strconv.Itoa(v.Constraint)}}
 	}
 
-	return nil, params
+	return nil
 }
 
 // Email is a constraint to do a simple validation for email addresses, it only check if the string contains "@"
@@ -44,12 +43,12 @@ type Email struct {
 }
 
 // Validate email addresses
-func (v Email) Validate() (err error, params []string) {
+func (v Email) Validate() Error {
 	if !strings.Contains(v.Value, "@") || string(v.Value[0]) == "@" || string(v.Value[len(v.Value)-1]) == "@" {
-		return fmt.Errorf("email"), []string{v.Value}
+		return &ValidationError{"email", []interface{}{v.Value}}
 	}
 
-	return nil, params
+	return nil
 }
 
 // Regex allow validation usig regular expressions
@@ -59,15 +58,15 @@ type Regex struct {
 }
 
 // Validate using regex
-func (v Regex) Validate() (err error, params []string) {
+func (v Regex) Validate() Error {
 	regex, err := regexp.Compile(v.Constraint)
 	if err != nil {
-		return err, params
+		return &ValidationError{err.Error(), nil}
 	}
 
 	if !regex.MatchString(v.Value) {
-		return fmt.Errorf("regex"), []string{v.Value, v.Constraint}
+		return &ValidationError{"regex", []interface{}{v.Value, v.Constraint}}
 	}
 
-	return nil, params
+	return nil
 }

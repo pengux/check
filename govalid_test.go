@@ -14,7 +14,7 @@ type testTable struct {
 
 func runTableTest(table []testTable, t *testing.T) {
 	for _, tt := range table {
-		err, _ := tt.v.Validate()
+		err := tt.v.Validate()
 		if (err != nil && tt.valid) || (err == nil && !tt.valid) {
 			t.Errorf(tt.expected)
 		}

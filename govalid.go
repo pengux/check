@@ -23,22 +23,41 @@ var (
 // Validator is an interface for constraint types with a method of validate()
 type Validator interface {
 	// Validate check value against constraints
-	Validate() (err error, params []string)
+	Validate() Error
 }
 
+// Error is the default validation error. The Params() method returns the params
+// to be used in error messages
+type Error interface {
+	Error() string
+	Params() []interface{}
+}
+
+// ValidationError is an error implementation that includes error params
+// for usage in error messages
+type ValidationError struct {
+	message string
+	params  []interface{}
+}
+
+func (e *ValidationError) Error() string { return e.message }
+
+// Params return the error parameters to be used in error messages
+func (e *ValidationError) Params() []interface{} { return e.params }
+
 // ErrorMap is a map with validation errors
-type ErrorMap map[string]map[string][]string
+type ErrorMap map[string][]Error
 
 // Add accept a key and a slice of validators which will be run and any errors
 // from the validation will be saved in ErrorMap
 func (e *ErrorMap) Add(key string, validators ...Validator) {
 	for _, validator := range validators {
-		if err, params := validator.Validate(); err != nil {
+		if err := validator.Validate(); err != nil {
 			if _, ok := (*e)[key]; !ok {
-				(*e)[key] = make(map[string][]string, 1)
+				(*e)[key] = make([]Error, 0)
 			}
 
-			(*e)[key][string(err.Error())] = params
+			(*e)[key] = append((*e)[key], err)
 		}
 	}
 }
@@ -49,7 +68,7 @@ func (e *ErrorMap) HasErrors() bool {
 }
 
 // GetErrorsByKey return all errors for a specificed key
-func (e *ErrorMap) GetErrorsByKey(key string) (map[string][]string, bool) {
+func (e *ErrorMap) GetErrorsByKey(key string) ([]Error, bool) {
 	v, ok := (*e)[key]
 	return v, ok
 }
@@ -60,19 +79,14 @@ func (e *ErrorMap) ToMessages(messages map[string]string) map[string]map[string]
 
 	for field, validationErrors := range *e {
 		errMessages[field] = make(map[string]string)
-		for key, params := range validationErrors {
-			// Convert params to []interface{}
-			vals := make([]interface{}, len(params))
-			for i, v := range params {
-				vals[i] = v
-			}
-
-			msg, ok := ErrorMessages[key]
+		for _, err := range validationErrors {
+			key := err.Error()
+			msg, ok := ErrorMessages[err.Error()]
 			if !ok {
 				errMessages[field][key] = "invalid data"
 			} else {
-				if len(params) > 0 {
-					errMessages[field][key] = fmt.Sprintf(msg, vals...)
+				if len(err.Params()) > 0 {
+					errMessages[field][key] = fmt.Sprintf(msg, err.Params()...)
 				} else {
 					errMessages[field][key] = msg
 				}
@@ -89,19 +103,19 @@ type NonZero struct {
 }
 
 // Validate value to not be a zeroed value, return error and empty slice of strings
-func (v NonZero) Validate() (err error, params []string) {
+func (v NonZero) Validate() Error {
 	t := reflect.TypeOf(v.Value)
 
 	switch t.Kind() {
 	default:
 		if reflect.DeepEqual(reflect.Zero(t).Interface(), v.Value) {
-			return fmt.Errorf("nonZero"), params
+			return &ValidationError{"nonZero", nil}
 		}
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan, reflect.String:
 		if reflect.ValueOf(v.Value).Len() == 0 {
-			return fmt.Errorf("nonZero"), params
+			return &ValidationError{"nonZero", nil}
 		}
 	}
 
-	return nil, params
+	return nil
 }

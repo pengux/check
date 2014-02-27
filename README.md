@@ -48,12 +48,12 @@ type CustomStringContainValidator struct {
 	Value      string
 }
 
-func (v CustomStringContainValidator) Validate() (err error, params []string) {
+func (v CustomStringContainValidator) Validate() check.Error {
 	if !strings.Contains(v.Value, v.Constraint) {
-		return fmt.Errorf("customStringContainValidator"), []string{v.Value, v.Constraint}
+		return &check.ValidationError{"customStringContainValidator", []interface{}{v.Value, v.Constraint}}
 	}
 
-	return nil, params
+	return nil
 }
 
 func main() {

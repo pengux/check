@@ -24,14 +24,15 @@ To validate your data, create a new ErrorMap and add validators to it:
 
 ```go
 func main() {
+	username := "invalid*"
 	e := &check.ErrorMap{}
-	e.Add("foo", check.Regex{"[a-zA-Z0-9]+$", "invalid-string"})
-	e.Add("foo", check.NonZero{""}, check.MinChar{5, "bar"}) // Add multiple validators at the same time
+	e.Add("username", check.Regex{"[a-zA-Z0-9]+$", username})
+	e.Add("username", check.NonZero{username}, check.MinChar{10, username}) // Add multiple validators at the same time
 
 	if e.HasErrors() {
 		err, ok := e.GetErrorsByKey("username")
 		if !ok {
-			panic("")
+			panic()
 		}
 		fmt.Println(err)
 	}
@@ -56,8 +57,9 @@ func (v CustomStringContainValidator) Validate() (err error, params []string) {
 }
 
 func main() {
+	username := "invalid*"
 	e := &check.ErrorMap{}
-	e.Add("foo", Customstringcontainvalidator{"foo", "bar"})
+	e.Add("username", Customstringcontainvalidator{"admin", username})
 	fmt.Println(e.ToMessages(check.Errormessages))
 }
 ```

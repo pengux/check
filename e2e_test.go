@@ -105,12 +105,16 @@ func TestIntegration(t *testing.T) {
 		time.Date(1980, time.January, 1, 1, 0, 0, 0, time.UTC),
 	}
 
-	_, hasErr := invalidUser.Validate()
+	errs, hasErr := invalidUser.Validate()
 	if !hasErr {
 		t.Errorf("Expected 'invalidUser' to be invalid")
 	}
 
-	// errs, hasErr := Validate(invalidUser)
+	errMessages := errs.ToMessages(ErrorMessages)
+	if errMessages["name"]["nonZero"] != ErrorMessages["nonZero"] {
+		t.Errorf("Expected proper error message")
+	}
+
 	// json, _ := json.MarshalIndent(errs, "", "	")
 	// log.Println(string(json))
 

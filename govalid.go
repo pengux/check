@@ -5,6 +5,21 @@ import (
 	"reflect"
 )
 
+var (
+	// ErrorMessages contains default error messages
+	ErrorMessages = map[string]string{
+		"nonZero":     "value cannot be empty",
+		"before":      "%v is not before %v",
+		"after":       "%v is not after %v",
+		"lowerThan":   "%v is not lower than %v",
+		"greaterThan": "%v is not greater than %v",
+		"minChar":     "too short, minimum %v characters",
+		"maxChar":     "too long, minimum %v characters",
+		"email":       "%v is an invalid email address",
+		"regex":       "%v does not match %v",
+	}
+)
+
 // Validator is an interface for constraint types with a method of validate()
 type Validator interface {
 	// Validate check value against constraints
@@ -14,6 +29,29 @@ type Validator interface {
 // ValidationErrors is a map with string keys and sub maps of ValidationErrors
 // as keys and slices of string with validation params
 type ValidationErrors map[string]map[string][]string
+
+// ToMessages convert ValidationErrors to a map of field and their validation key with proper error messages
+func (v ValidationErrors) ToMessages(messages map[string]string) map[string]map[string]string {
+	errMessages := make(map[string]map[string]string)
+
+	for field, validationErrors := range v {
+		errMessages[field] = make(map[string]string)
+		for key, params := range validationErrors {
+			msg, ok := ErrorMessages[key]
+			if !ok {
+				errMessages[field][key] = "invalid data"
+			} else {
+				if len(params) > 0 {
+					errMessages[field][key] = fmt.Sprintf(msg, params)
+				} else {
+					errMessages[field][key] = msg
+				}
+			}
+		}
+	}
+
+	return errMessages
+}
 
 // Validate accepts a map of string as keys and slice of Validator structs,
 // execute validation with the Validator and return any errors

@@ -2,6 +2,7 @@ package govalid
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 	"time"
@@ -29,61 +30,18 @@ type User struct {
 	Birthday time.Time
 }
 
-func (u *User) Validate() (ValidationErrors, bool) {
-	return Validate(map[string][]Validator{
-		"username": []Validator{
-			NonZero{
-				u.Username,
-			},
-			Regex{
-				`[a-zA-Z0-9]`, // constraint
-				u.Username,    // value to be validated
-			},
-		},
-		"password": []Validator{
-			NonZero{
-				u.Password,
-			},
-			MinChar{
-				8,
-				u.Password,
-			},
-		},
-		"name": []Validator{
-			NonZero{
-				u.Name,
-			},
-		},
-		"age": []Validator{
-			GreaterThan{
-				3,
-				u.Age,
-			},
-			LowerThan{
-				120,
-				u.Age,
-			},
-		},
-		"email": []Validator{
-			Email{
-				u.Email,
-			},
-			CustomStringContainValidator{
-				"test.com",
-				u.Email,
-			},
-		},
-		"birthday": []Validator{
-			Before{
-				time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC),
-				u.Birthday,
-			},
-			After{
-				time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC),
-				u.Birthday,
-			},
-		},
-	})
+func (u *User) Validate() *ErrorMap {
+	e := &ErrorMap{}
+	e.Add("username", NonZero{u.Username})
+	e.Add("username", Regex{`^[a-zA-Z0-9]+$`, u.Username})
+	e.Add("password", NonZero{u.Password}, MinChar{8, u.Password})
+	e.Add("name", NonZero{u.Name})
+	e.Add("age", GreaterThan{3, u.Age}, LowerThan{120, u.Age})
+	e.Add("email", Email{u.Email})
+	e.Add("email", CustomStringContainValidator{"test.com", u.Email})
+	e.Add("birthday", Before{time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC), u.Birthday}, After{time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC), u.Birthday})
+
+	return e
 }
 
 func TestIntegration(t *testing.T) {
@@ -105,12 +63,21 @@ func TestIntegration(t *testing.T) {
 		time.Date(1980, time.January, 1, 1, 0, 0, 0, time.UTC),
 	}
 
-	errs, hasErr := invalidUser.Validate()
-	if !hasErr {
+	e := invalidUser.Validate()
+	if !e.HasErrors() {
 		t.Errorf("Expected 'invalidUser' to be invalid")
 	}
 
-	errMessages := errs.ToMessages(ErrorMessages)
+	err, ok := e.GetErrorsByKey("username")
+	if !ok {
+		t.Errorf("Expected errors for 'username'")
+	} else {
+		if len(err) < 1 {
+			t.Errorf("Expected 1 error for 'username'")
+		}
+	}
+
+	errMessages := e.ToMessages(ErrorMessages)
 	if errMessages["name"]["nonZero"] != ErrorMessages["nonZero"] {
 		t.Errorf("Expected proper error message")
 	}
@@ -118,8 +85,9 @@ func TestIntegration(t *testing.T) {
 	// json, _ := json.MarshalIndent(errMessages, "", "	")
 	// log.Println(string(json))
 
-	_, hasErr = validUser.Validate()
-	if hasErr {
+	e = validUser.Validate()
+	if e.HasErrors() {
+		log.Println(*e)
 		t.Errorf("Expected 'validUser' to be valid")
 	}
 }

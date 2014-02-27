@@ -26,15 +26,39 @@ type Validator interface {
 	Validate() (err error, params []string)
 }
 
-// ValidationErrors is a map with string keys and sub maps of ValidationErrors
-// as keys and slices of string with validation params
-type ValidationErrors map[string]map[string][]string
+// ErrorMap is a map with validation errors
+type ErrorMap map[string]map[string][]string
 
-// ToMessages convert ValidationErrors to a map of field and their validation key with proper error messages
-func (v ValidationErrors) ToMessages(messages map[string]string) map[string]map[string]string {
+// Add accept a key and a slice of validators which will be run and any errors
+// from the validation will be saved in ErrorMap
+func (e *ErrorMap) Add(key string, validators ...Validator) {
+	for _, validator := range validators {
+		if err, params := validator.Validate(); err != nil {
+			if _, ok := (*e)[key]; !ok {
+				(*e)[key] = make(map[string][]string, 1)
+			}
+
+			(*e)[key][string(err.Error())] = params
+		}
+	}
+}
+
+// HasErrors return true if the ErrorMap has errors
+func (e *ErrorMap) HasErrors() bool {
+	return len(*e) > 0
+}
+
+// GetErrorsByKey return all errors for a specificed key
+func (e *ErrorMap) GetErrorsByKey(key string) (map[string][]string, bool) {
+	v, ok := (*e)[key]
+	return v, ok
+}
+
+// ToMessages convert ErrorMap to a map of field and their validation key with proper error messages
+func (e *ErrorMap) ToMessages(messages map[string]string) map[string]map[string]string {
 	errMessages := make(map[string]map[string]string)
 
-	for field, validationErrors := range v {
+	for field, validationErrors := range *e {
 		errMessages[field] = make(map[string]string)
 		for key, params := range validationErrors {
 			// Convert params to []interface{}
@@ -57,26 +81,6 @@ func (v ValidationErrors) ToMessages(messages map[string]string) map[string]map[
 	}
 
 	return errMessages
-}
-
-// Validate accepts a map of string as keys and slice of Validator structs,
-// execute validation with the Validator and return any errors
-func Validate(m map[string][]Validator) (errs ValidationErrors, hasErr bool) {
-	errs = make(ValidationErrors)
-	for field, validators := range m {
-		for _, validator := range validators {
-			if err, params := validator.Validate(); err != nil {
-				if _, ok := errs[field]; !ok {
-					errs[field] = make(map[string][]string, 1)
-				}
-
-				errs[field][string(err.Error())] = params
-				hasErr = true
-			}
-		}
-	}
-
-	return errs, hasErr
 }
 
 // NonZero check that the value is not a zeroed value depending on its type

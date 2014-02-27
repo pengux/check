@@ -20,26 +20,21 @@ cd $GOPATH/src/github.com/pengux/govalid && go test
 ```
 
 
-To validate your data, you need to create a map with fields and validators and pass it to the Validate() function:
+To validate your data, create a new ErrorMap and add validators to it:
 
 ```go
 func main() {
-	errs, hasErr := govalid.Validate(map[string][]Validator{
-		"foo": []govalid.Validator{
-			govalid.Regex{
-				`[a-zA-Z0-9]`, // constraint
-				"invalid-string", // value to be validated
-			},
-			govalid.NonZero{
-				"", // Invalid
-			},
-			govalid.MinChar{
-				5,
-				"bar", // Invalid
-			},
+	e := &govalid.ErrorMap{}
+	e.Add("foo", govalid.Regex{"[a-zA-Z0-9]+$", "invalid-string"})
+	e.Add("foo", govalid.NonZero{""}, govalid.MinChar{5, "bar"}) // Add multiple validators at the same time
+
+	if e.HasErrors() {
+		err, ok := e.GetErrorsByKey("username")
+		if !ok {
+			panic("")
 		}
-	})
-	fmt.Println(errs, hasErr)
+		fmt.Println(err)
+	}
 }
 ```
 
@@ -61,15 +56,9 @@ func (v CustomStringContainValidator) Validate() (err error, params []string) {
 }
 
 func main() {
-	errs, hasErr := govalid.Validate(map[string][]Validator{
-		"foo": []govalid.Validator{
-			CustomStringContainValidator{
-				"test.com",
-				"foo@bar.com",
-			},
-		}
-	})
-	fmt.Println(errs, hasErr)
+	e := &govalid.ErrorMap{}
+	e.Add("foo", Customstringcontainvalidator{"foo", "bar"})
+	fmt.Println(e.ToMessages(govalid.Errormessages))
 }
 ```
 
@@ -77,7 +66,7 @@ func main() {
 To use default error messages, pass in the package variable ErrorMessages:
 
 ```go
-errMessages := errs.ToMessages(govalid.ErrorMessages)
+errMessages := e.ToMessages(govalid.ErrorMessages)
 fmt.Println(errMessages)
 ```
 

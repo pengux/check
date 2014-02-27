@@ -3,6 +3,7 @@ package govalid
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ type MinChar struct {
 // Validate check value against constraint
 func (v *MinChar) Validate() (err error, params []string) {
 	if len(v.Value) < v.Constraint {
-		return fmt.Errorf("minChar"), []string{v.Value}
+		return fmt.Errorf("minChar"), []string{strconv.Itoa(v.Constraint)}
 	}
 
 	return nil, params
@@ -30,7 +31,7 @@ type MaxChar struct {
 // Validate check value against constraint
 func (v *MaxChar) Validate() (err error, params []string) {
 	if len(v.Value) > v.Constraint {
-		return fmt.Errorf("maxChar"), []string{v.Value}
+		return fmt.Errorf("maxChar"), []string{strconv.Itoa(v.Constraint)}
 	}
 
 	return nil, params

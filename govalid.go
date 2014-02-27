@@ -15,8 +15,8 @@ var (
 		"greaterThan": "%v is not greater than %v",
 		"minChar":     "too short, minimum %v characters",
 		"maxChar":     "too long, minimum %v characters",
-		"email":       "%v is an invalid email address",
-		"regex":       "%v does not match %v",
+		"email":       "'%v' is an invalid email address",
+		"regex":       "'%v' does not match '%v'",
 	}
 )
 
@@ -37,12 +37,18 @@ func (v ValidationErrors) ToMessages(messages map[string]string) map[string]map[
 	for field, validationErrors := range v {
 		errMessages[field] = make(map[string]string)
 		for key, params := range validationErrors {
+			// Convert params to []interface{}
+			vals := make([]interface{}, len(params))
+			for i, v := range params {
+				vals[i] = v
+			}
+
 			msg, ok := ErrorMessages[key]
 			if !ok {
 				errMessages[field][key] = "invalid data"
 			} else {
 				if len(params) > 0 {
-					errMessages[field][key] = fmt.Sprintf(msg, params)
+					errMessages[field][key] = fmt.Sprintf(msg, vals...)
 				} else {
 					errMessages[field][key] = msg
 				}

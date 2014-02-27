@@ -27,7 +27,7 @@ func main() {
 	username := "invalid*"
 	e := &check.ErrorMap{}
 	e.Add("username", check.Regex{"[a-zA-Z0-9]+$", username})
-	e.Add("username", check.NonZero{username}, check.MinChar{10, username}) // Add multiple validators at the same time
+	e.Add("username", check.NonEmpty{username}, check.MinChar{10, username}) // Add multiple validators at the same time
 
 	if e.HasErrors() {
 		err, ok := e.GetErrorsByKey("username")

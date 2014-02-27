@@ -1,3 +1,4 @@
+// Package check allows data validation of values in different types
 package check
 
 import (
@@ -97,13 +98,13 @@ func (e *ErrorMap) ToMessages(messages map[string]string) map[string]map[string]
 	return errMessages
 }
 
-// NonZero check that the value is not a zeroed value depending on its type
-type NonZero struct {
+// NonEmpty check that the value is not a zeroed value depending on its type
+type NonEmpty struct {
 	Value interface{}
 }
 
 // Validate value to not be a zeroed value, return error and empty slice of strings
-func (v NonZero) Validate() Error {
+func (v NonEmpty) Validate() Error {
 	t := reflect.TypeOf(v.Value)
 
 	switch t.Kind() {

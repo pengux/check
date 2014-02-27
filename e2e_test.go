@@ -31,10 +31,10 @@ type User struct {
 
 func (u *User) Validate() *ErrorMap {
 	e := &ErrorMap{}
-	e.Add("username", NonZero{u.Username})
+	e.Add("username", NonEmpty{u.Username})
 	e.Add("username", Regex{`^[a-zA-Z0-9]+$`, u.Username})
-	e.Add("password", NonZero{u.Password}, MinChar{8, u.Password})
-	e.Add("name", NonZero{u.Name})
+	e.Add("password", NonEmpty{u.Password}, MinChar{8, u.Password})
+	e.Add("name", NonEmpty{u.Name})
 	e.Add("age", GreaterThan{3, u.Age}, LowerThan{120, u.Age})
 	e.Add("email", Email{u.Email})
 	e.Add("email", CustomStringContainValidator{"test.com", u.Email})

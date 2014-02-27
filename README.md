@@ -32,7 +32,7 @@ func main() {
 	if e.HasErrors() {
 		err, ok := e.GetErrorsByKey("username")
 		if !ok {
-			panic()
+			panic("key username does not exists")
 		}
 		fmt.Println(err)
 	}
@@ -59,8 +59,8 @@ func (v CustomStringContainValidator) Validate() check.Error {
 func main() {
 	username := "invalid*"
 	e := &check.ErrorMap{}
-	e.Add("username", Customstringcontainvalidator{"admin", username})
-	fmt.Println(e.ToMessages(check.Errormessages))
+	e.Add("username", CustomStringContainValidator{"admin", username})
+	fmt.Println(e.ToMessages(check.ErrorMessages))
 }
 ```
 

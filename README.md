@@ -82,7 +82,7 @@ fmt.Println(errMessages)
 ```
 
 
-To use custom error messages, either overwrite the package variable `ErrorMessages` or create your `map[string]string`:
+To use custom error messages, either overwrite the package variable `ErrorMessages` or create your own `map[string]string`:
 
 ```go
 govalid.ErrorMessages["minChar"] := "the string must be minimum %v characters long"

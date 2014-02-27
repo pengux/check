@@ -2,7 +2,7 @@ package check
 
 import "fmt"
 
-func Example() {
+func ExampleValidator() {
 	username := "invalid*"
 	e := &ErrorMap{}
 	e.Add("username", CustomStringContainValidator{"admin", username})

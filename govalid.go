@@ -85,7 +85,7 @@ type NonZero struct {
 }
 
 // Validate value to not be a zeroed value, return error and empty slice of strings
-func (v *NonZero) Validate() (err error, params []string) {
+func (v NonZero) Validate() (err error, params []string) {
 	t := reflect.TypeOf(v.Value)
 
 	switch t.Kind() {

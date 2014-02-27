@@ -12,7 +12,7 @@ type LowerThan struct {
 }
 
 // Validate check value against constraint
-func (v *LowerThan) Validate() (err error, params []string) {
+func (v LowerThan) Validate() (err error, params []string) {
 	switch val := v.Value.(type) {
 	default:
 		return fmt.Errorf("nan"), params
@@ -36,7 +36,7 @@ type GreaterThan struct {
 }
 
 // Validate check value against constraint
-func (v *GreaterThan) Validate() (err error, params []string) {
+func (v GreaterThan) Validate() (err error, params []string) {
 	switch val := v.Value.(type) {
 	default:
 		return fmt.Errorf("nan"), params

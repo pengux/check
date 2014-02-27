@@ -12,7 +12,7 @@ type CustomStringContainValidator struct {
 	Value      string
 }
 
-func (v *CustomStringContainValidator) Validate() (err error, params []string) {
+func (v CustomStringContainValidator) Validate() (err error, params []string) {
 	if !strings.Contains(v.Value, v.Constraint) {
 		return fmt.Errorf("customStringContainValidator"), []string{v.Value, v.Constraint}
 	}
@@ -32,53 +32,53 @@ type User struct {
 func (u *User) Validate() (ValidationErrors, bool) {
 	return Validate(map[string][]Validator{
 		"username": []Validator{
-			&NonZero{
+			NonZero{
 				u.Username,
 			},
-			&Regex{
+			Regex{
 				`[a-zA-Z0-9]`, // constraint
 				u.Username,    // value to be validated
 			},
 		},
 		"password": []Validator{
-			&NonZero{
+			NonZero{
 				u.Password,
 			},
-			&MinChar{
+			MinChar{
 				8,
 				u.Password,
 			},
 		},
 		"name": []Validator{
-			&NonZero{
+			NonZero{
 				u.Name,
 			},
 		},
 		"age": []Validator{
-			&GreaterThan{
+			GreaterThan{
 				3,
 				u.Age,
 			},
-			&LowerThan{
+			LowerThan{
 				120,
 				u.Age,
 			},
 		},
 		"email": []Validator{
-			&Email{
+			Email{
 				u.Email,
 			},
-			&CustomStringContainValidator{
+			CustomStringContainValidator{
 				"test.com",
 				u.Email,
 			},
 		},
 		"birthday": []Validator{
-			&Before{
+			Before{
 				time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC),
 				u.Birthday,
 			},
-			&After{
+			After{
 				time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC),
 				u.Birthday,
 			},

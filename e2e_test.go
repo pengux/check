@@ -12,12 +12,12 @@ type CustomStringContainValidator struct {
 	Value      string
 }
 
-func (v *CustomStringContainValidator) Validate() error {
+func (v *CustomStringContainValidator) Validate() (err error, params []string) {
 	if !strings.Contains(v.Value, v.Constraint) {
-		return fmt.Errorf("the string %v doesn't contain %v", v.Value, v.Constraint)
+		return fmt.Errorf("customStringContainValidator"), []string{v.Value, v.Constraint}
 	}
 
-	return nil
+	return nil, params
 }
 
 type User struct {
@@ -29,61 +29,61 @@ type User struct {
 	Birthday time.Time
 }
 
-func (u *User) GetValidators() map[string]map[string]Validator {
-	return map[string]map[string]Validator{
-		"username": map[string]Validator{
-			"nonZero": &NonZero{
+func (u *User) Validate() (ValidationErrors, bool) {
+	return Validate(map[string][]Validator{
+		"username": []Validator{
+			&NonZero{
 				u.Username,
 			},
-			"regex": &Regex{
+			&Regex{
 				`[a-zA-Z0-9]`, // constraint
 				u.Username,    // value to be validated
 			},
 		},
-		"password": map[string]Validator{
-			"nonZero": &NonZero{
+		"password": []Validator{
+			&NonZero{
 				u.Password,
 			},
-			"minChar": &MinChar{
+			&MinChar{
 				8,
 				u.Password,
 			},
 		},
-		"name": map[string]Validator{
-			"nonZero": &NonZero{
+		"name": []Validator{
+			&NonZero{
 				u.Name,
 			},
 		},
-		"age": map[string]Validator{
-			"greaterThan": &GreaterThan{
+		"age": []Validator{
+			&GreaterThan{
 				3,
 				u.Age,
 			},
-			"lowerThan": &LowerThan{
+			&LowerThan{
 				120,
 				u.Age,
 			},
 		},
-		"email": map[string]Validator{
-			"email": &Email{
+		"email": []Validator{
+			&Email{
 				u.Email,
 			},
-			"customStringContainValidator": &CustomStringContainValidator{
+			&CustomStringContainValidator{
 				"test.com",
 				u.Email,
 			},
 		},
-		"birthday": map[string]Validator{
-			"before": &Before{
+		"birthday": []Validator{
+			&Before{
 				time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC),
 				u.Birthday,
 			},
-			"after": &After{
+			&After{
 				time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC),
 				u.Birthday,
 			},
 		},
-	}
+	})
 }
 
 func TestIntegration(t *testing.T) {
@@ -105,7 +105,7 @@ func TestIntegration(t *testing.T) {
 		time.Date(1980, time.January, 1, 1, 0, 0, 0, time.UTC),
 	}
 
-	_, hasErr := Validate(invalidUser)
+	_, hasErr := invalidUser.Validate()
 	if !hasErr {
 		t.Errorf("Expected 'invalidUser' to be invalid")
 	}
@@ -114,8 +114,23 @@ func TestIntegration(t *testing.T) {
 	// json, _ := json.MarshalIndent(errs, "", "	")
 	// log.Println(string(json))
 
-	_, hasErr = Validate(validUser)
+	_, hasErr = validUser.Validate()
 	if hasErr {
 		t.Errorf("Expected 'validUser' to be valid")
+	}
+}
+
+func BenchmarkValidate(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		invalidUser := &User{
+			"not-valid-username*",
+			"123",   // Invalid password length
+			"",      // Cannot be empty
+			150,     // Invalid age
+			"@test", // Invalid email address
+			time.Date(1991, time.January, 1, 1, 0, 0, 0, time.UTC), // Invalid date
+		}
+
+		invalidUser.Validate()
 	}
 }

@@ -13,12 +13,12 @@ type MinChar struct {
 }
 
 // Validate check value against constraint
-func (v *MinChar) Validate() error {
+func (v *MinChar) Validate() (err error, params []string) {
 	if len(v.Value) < v.Constraint {
-		return fmt.Errorf("too short, must be at least %v characters", v.Value)
+		return fmt.Errorf("minChar"), []string{v.Value}
 	}
 
-	return nil
+	return nil, params
 }
 
 // MaxChar validates that a string must have a length maximum of its constraint
@@ -28,12 +28,12 @@ type MaxChar struct {
 }
 
 // Validate check value against constraint
-func (v *MaxChar) Validate() error {
+func (v *MaxChar) Validate() (err error, params []string) {
 	if len(v.Value) > v.Constraint {
-		return fmt.Errorf("too long, must be at maximum %v characters", v.Value)
+		return fmt.Errorf("maxChar"), []string{v.Value}
 	}
 
-	return nil
+	return nil, params
 }
 
 // Email is a constraint to do a simple validation for email addresses, it only check if the string contains "@"
@@ -43,12 +43,12 @@ type Email struct {
 }
 
 // Validate email addresses
-func (v *Email) Validate() error {
+func (v *Email) Validate() (err error, params []string) {
 	if !strings.Contains(v.Value, "@") || string(v.Value[0]) == "@" || string(v.Value[len(v.Value)-1]) == "@" {
-		return fmt.Errorf("invalid email address")
+		return fmt.Errorf("email"), []string{v.Value}
 	}
 
-	return nil
+	return nil, params
 }
 
 // Regex allow validation usig regular expressions
@@ -58,15 +58,15 @@ type Regex struct {
 }
 
 // Validate using regex
-func (v *Regex) Validate() error {
+func (v *Regex) Validate() (err error, params []string) {
 	regex, err := regexp.Compile(v.Constraint)
 	if err != nil {
-		return err
+		return err, params
 	}
 
 	if !regex.MatchString(v.Value) {
-		return fmt.Errorf("%v doesn't match the pattern %v", v.Value, v.Constraint)
+		return fmt.Errorf("regex"), []string{v.Value, v.Constraint}
 	}
 
-	return nil
+	return nil, params
 }

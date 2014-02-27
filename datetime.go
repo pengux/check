@@ -12,12 +12,12 @@ type Before struct {
 }
 
 // Validate check if a time in Value is before the time in Constraint
-func (v *Before) Validate() error {
+func (v *Before) Validate() (err error, params []string) {
 	if !v.Value.Before(v.Constraint) {
-		return fmt.Errorf("%v is not before %v", v.Value, v.Constraint)
+		return fmt.Errorf("before"), []string{v.Value.String(), v.Constraint.String()}
 	}
 
-	return nil
+	return nil, params
 }
 
 // After check if a time in Value is before the time in Constraint
@@ -27,10 +27,10 @@ type After struct {
 }
 
 // Validate check if a time in Value is after the time in Constraint
-func (v *After) Validate() error {
+func (v *After) Validate() (err error, params []string) {
 	if !v.Value.After(v.Constraint) {
-		return fmt.Errorf("%v is not after %v", v.Value, v.Constraint)
+		return fmt.Errorf("after"), []string{v.Value.String(), v.Constraint.String()}
 	}
 
-	return nil
+	return nil, params
 }

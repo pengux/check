@@ -1,6 +1,7 @@
 [![baby-gopher](https://raw2.github.com/drnic/babygopher-site/gh-pages/images/babygopher-badge.png)](http://www.babygopher.org)
 
 # check - Go package for data validation
+[Documentation](http://godoc.org/github.com/pengux/check)
 
 ## Design goals
 - Multiple constraints on the same value by applying multiple validators

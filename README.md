@@ -1,6 +1,6 @@
 [![baby-gopher](https://raw2.github.com/drnic/babygopher-site/gh-pages/images/babygopher-badge.png)](http://www.babygopher.org)
 
-# govalid - Go package for data validation
+# check - Go package for data validation
 
 ## Design goals
 - Multiple constraints on the same value by applying multiple validators
@@ -10,13 +10,13 @@
 
 ## Usage
 ```bash
-go get github.com/pengux/govalid
+go get github.com/pengux/check
 ```
 
 
 To run tests:
 ```bash
-cd $GOPATH/src/github.com/pengux/govalid && go test
+cd $GOPATH/src/github.com/pengux/check && go test
 ```
 
 
@@ -24,9 +24,9 @@ To validate your data, create a new ErrorMap and add validators to it:
 
 ```go
 func main() {
-	e := &govalid.ErrorMap{}
-	e.Add("foo", govalid.Regex{"[a-zA-Z0-9]+$", "invalid-string"})
-	e.Add("foo", govalid.NonZero{""}, govalid.MinChar{5, "bar"}) // Add multiple validators at the same time
+	e := &check.ErrorMap{}
+	e.Add("foo", check.Regex{"[a-zA-Z0-9]+$", "invalid-string"})
+	e.Add("foo", check.NonZero{""}, check.MinChar{5, "bar"}) // Add multiple validators at the same time
 
 	if e.HasErrors() {
 		err, ok := e.GetErrorsByKey("username")
@@ -56,9 +56,9 @@ func (v CustomStringContainValidator) Validate() (err error, params []string) {
 }
 
 func main() {
-	e := &govalid.ErrorMap{}
+	e := &check.ErrorMap{}
 	e.Add("foo", Customstringcontainvalidator{"foo", "bar"})
-	fmt.Println(e.ToMessages(govalid.Errormessages))
+	fmt.Println(e.ToMessages(check.Errormessages))
 }
 ```
 
@@ -66,7 +66,7 @@ func main() {
 To use default error messages, pass in the package variable ErrorMessages:
 
 ```go
-errMessages := e.ToMessages(govalid.ErrorMessages)
+errMessages := e.ToMessages(check.ErrorMessages)
 fmt.Println(errMessages)
 ```
 
@@ -74,8 +74,8 @@ fmt.Println(errMessages)
 To use custom error messages, either overwrite the package variable `ErrorMessages` or create your own `map[string]string`:
 
 ```go
-govalid.ErrorMessages["minChar"] := "the string must be minimum %v characters long"
-errMessages := errs.ToMessages(govalid.ErrorMessages)
+check.ErrorMessages["minChar"] := "the string must be minimum %v characters long"
+errMessages := errs.ToMessages(check.ErrorMessages)
 fmt.Println(errMessages)
 
 errMessages := errs.ToMessages(map[string]string{"minChar": "the string must be minimum %v characters long"})
@@ -83,5 +83,5 @@ fmt.Println(errMessages)
 ```
 
 
-For more example code check the file [`e2e_test.go`](https://github.com/pengux/govalid/blob/master/e2e_test.go).
+For more example code check the file [`e2e_test.go`](https://github.com/pengux/check/blob/master/e2e_test.go).
 

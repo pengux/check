@@ -33,12 +33,17 @@ type Struct map[string]Validator
 
 // Validate execute validation using the validators.
 func (s Struct) Validate(v interface{}) StructError {
-	if reflect.TypeOf(v).Kind() != reflect.Struct {
+	val := reflect.ValueOf(v)
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
 		panic("not a struct")
 	}
 
 	e := StructError{}
-	val := reflect.ValueOf(v)
 	for fieldname, validator := range s {
 		field := val.FieldByName(fieldname)
 		if err := validator.Validate(field.Interface()); err != nil {

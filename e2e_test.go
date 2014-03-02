@@ -58,7 +58,7 @@ func (u *User) Validate() StructError {
 			After{time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC)},
 		},
 	}
-	e := s.Validate(*u)
+	e := s.Validate(u)
 
 	return e
 }

@@ -2,16 +2,29 @@ package check
 
 import "fmt"
 
+type Person struct {
+	Name string
+}
+
 func Example() {
-	username := "invalid*"
-	e := &ErrorMap{}
-	e.Add("username", Regex{"[a-zA-Z0-9]+$", username})
-	e.Add("username", NonEmpty{username}, MinChar{10, username}) // Add multiple validators at the same time
+	p := &Person{
+		Name: "invalid*",
+	}
+
+	s := Struct{
+		"Name": Composite{
+			NonEmpty{},
+			Regex{`^[a-zA-Z0-9]+$`},
+			MinChar{10},
+		},
+	}
+
+	e := s.Validate(*p)
 
 	if e.HasErrors() {
-		err, ok := e.GetErrorsByKey("username")
+		err, ok := e.GetErrorsByKey("Name")
 		if !ok {
-			panic("key username does not exists")
+			panic("key 'Name' does not exists")
 		}
 		fmt.Println(err)
 	}

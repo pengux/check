@@ -1,7 +1,6 @@
 package check
 
 import (
-	"log"
 	"strings"
 	"testing"
 	"time"
@@ -9,12 +8,18 @@ import (
 
 type CustomStringContainValidator struct {
 	Constraint string
-	Value      string
 }
 
-func (v CustomStringContainValidator) Validate() Error {
-	if !strings.Contains(v.Value, v.Constraint) {
-		return &ValidationError{"customStringContainValidator", []interface{}{v.Value, v.Constraint}}
+func (validator CustomStringContainValidator) Validate(v interface{}) Error {
+	if !strings.Contains(v.(string), validator.Constraint) {
+		return &ValidationError{
+			map[string][]interface{}{
+				"ecustomStringContainValidato": []interface{}{
+					v.(string),
+					validator.Constraint,
+				},
+			},
+		}
 	}
 
 	return nil
@@ -29,16 +34,31 @@ type User struct {
 	Birthday time.Time
 }
 
-func (u *User) Validate() *ErrorMap {
-	e := &ErrorMap{}
-	e.Add("username", NonEmpty{u.Username})
-	e.Add("username", Regex{`^[a-zA-Z0-9]+$`, u.Username})
-	e.Add("password", NonEmpty{u.Password}, MinChar{8, u.Password})
-	e.Add("name", NonEmpty{u.Name})
-	e.Add("age", GreaterThan{3, u.Age}, LowerThan{120, u.Age})
-	e.Add("email", Email{u.Email})
-	e.Add("email", CustomStringContainValidator{"test.com", u.Email})
-	e.Add("birthday", Before{time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC), u.Birthday}, After{time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC), u.Birthday})
+func (u *User) Validate() StructError {
+	s := Struct{
+		"Username": Composite{
+			NonEmpty{},
+			Regex{`^[a-zA-Z0-9]+$`},
+		},
+		"Password": Composite{
+			NonEmpty{},
+			MinChar{8},
+		},
+		"Name": NonEmpty{},
+		"Age": Composite{
+			GreaterThan{3},
+			LowerThan{120},
+		},
+		"Email": Composite{
+			Email{},
+			CustomStringContainValidator{"test.com"},
+		},
+		"Birthday": Composite{
+			Before{time.Date(1990, time.January, 1, 1, 0, 0, 0, time.UTC)},
+			After{time.Date(1900, time.January, 1, 1, 0, 0, 0, time.UTC)},
+		},
+	}
+	e := s.Validate(*u)
 
 	return e
 }
@@ -67,17 +87,17 @@ func TestIntegration(t *testing.T) {
 		t.Errorf("Expected 'invalidUser' to be invalid")
 	}
 
-	err, ok := e.GetErrorsByKey("username")
+	err, ok := e.GetErrorsByKey("Username")
 	if !ok {
-		t.Errorf("Expected errors for 'username'")
+		t.Errorf("Expected errors for 'Username'")
 	} else {
 		if len(err) < 1 {
-			t.Errorf("Expected 1 error for 'username'")
+			t.Errorf("Expected 1 error for 'Username'")
 		}
 	}
 
 	errMessages := e.ToMessages(ErrorMessages)
-	if errMessages["name"]["nonZero"] != ErrorMessages["nonZero"] {
+	if errMessages["Name"]["nonZero"] != ErrorMessages["nonZero"] {
 		t.Errorf("Expected proper error message")
 	}
 
@@ -86,7 +106,6 @@ func TestIntegration(t *testing.T) {
 
 	e = validUser.Validate()
 	if e.HasErrors() {
-		log.Println(*e)
 		t.Errorf("Expected 'validUser' to be valid")
 	}
 }

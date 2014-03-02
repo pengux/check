@@ -4,6 +4,7 @@ package check
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 var (
@@ -24,72 +25,113 @@ var (
 // Validator is an interface for constraint types with a method of validate()
 type Validator interface {
 	// Validate check value against constraints
-	Validate() Error
+	Validate(v interface{}) Error
+}
+
+// Struct allows validation of structs
+type Struct map[string]Validator
+
+// Validate execute validation using the validators.
+func (s Struct) Validate(v interface{}) StructError {
+	if reflect.TypeOf(v).Kind() != reflect.Struct {
+		panic("not a struct")
+	}
+
+	e := StructError{}
+	val := reflect.ValueOf(v)
+	for fieldname, validator := range s {
+		field := val.FieldByName(fieldname)
+		if err := validator.Validate(field.Interface()); err != nil {
+			if _, ok := e[fieldname]; !ok {
+				e[fieldname] = make([]Error, 0)
+			}
+
+			e[fieldname] = append(e[fieldname], err)
+		}
+	}
+
+	return e
+}
+
+// Composite allows adding multiple validators to the same value
+type Composite []Validator
+
+// Validate implements Validator
+func (c Composite) Validate(v interface{}) Error {
+	e := ValidationError{
+		errorMap: make(map[string][]interface{}),
+	}
+	for _, validator := range c {
+		if err := validator.Validate(v); err != nil {
+			errMap := err.ErrorMap()
+			for msg, params := range errMap {
+				e.errorMap[msg] = params
+			}
+		}
+	}
+
+	if len(e.errorMap) == 0 {
+		return nil
+	}
+
+	return e
 }
 
 // Error is the default validation error. The Params() method returns the params
 // to be used in error messages
 type Error interface {
 	Error() string
-	Params() []interface{}
+	ErrorMap() map[string][]interface{}
 }
 
-// ValidationError is an error implementation that includes error params
-// for usage in error messages
+// ValidationError implements Error
 type ValidationError struct {
-	message string
-	params  []interface{}
+	errorMap map[string][]interface{}
 }
 
-func (e *ValidationError) Error() string { return e.message }
-
-// Params return the error parameters to be used in error messages
-func (e *ValidationError) Params() []interface{} { return e.params }
-
-// ErrorMap is a map with validation errors
-type ErrorMap map[string][]Error
-
-// Add accept a key and a slice of validators which will be run and any errors
-// from the validation will be saved in ErrorMap
-func (e *ErrorMap) Add(key string, validators ...Validator) {
-	for _, validator := range validators {
-		if err := validator.Validate(); err != nil {
-			if _, ok := (*e)[key]; !ok {
-				(*e)[key] = make([]Error, 0)
-			}
-
-			(*e)[key] = append((*e)[key], err)
-		}
+func (e ValidationError) Error() string {
+	var errs []string
+	for msg := range e.errorMap {
+		errs = append(errs, msg)
 	}
+
+	return strings.Join(errs, "; ")
 }
+
+// ErrorMap returns the error map
+func (e ValidationError) ErrorMap() map[string][]interface{} { return e.errorMap }
+
+// StructError is a map with validation errors
+type StructError map[string][]Error
 
 // HasErrors return true if the ErrorMap has errors
-func (e *ErrorMap) HasErrors() bool {
-	return len(*e) > 0
+func (e StructError) HasErrors() bool {
+	return len(e) > 0
 }
 
 // GetErrorsByKey return all errors for a specificed key
-func (e *ErrorMap) GetErrorsByKey(key string) ([]Error, bool) {
-	v, ok := (*e)[key]
+func (e StructError) GetErrorsByKey(key string) ([]Error, bool) {
+	v, ok := e[key]
 	return v, ok
 }
 
-// ToMessages convert ErrorMap to a map of field and their validation key with proper error messages
-func (e *ErrorMap) ToMessages(messages map[string]string) map[string]map[string]string {
+// ToMessages convert StructError to a map of field and their validation key with proper error messages
+func (e StructError) ToMessages(messages map[string]string) map[string]map[string]string {
 	errMessages := make(map[string]map[string]string)
 
-	for field, validationErrors := range *e {
+	for field, validationErrors := range e {
 		errMessages[field] = make(map[string]string)
 		for _, err := range validationErrors {
-			key := err.Error()
-			msg, ok := ErrorMessages[err.Error()]
-			if !ok {
-				errMessages[field][key] = "invalid data"
-			} else {
-				if len(err.Params()) > 0 {
-					errMessages[field][key] = fmt.Sprintf(msg, err.Params()...)
+			for key, params := range err.ErrorMap() {
+				msg, ok := ErrorMessages[key]
+				if !ok {
+					errMessages[field][key] = "invalid data"
 				} else {
-					errMessages[field][key] = msg
+					if len(params) > 0 {
+						errMessages[field][key] = fmt.Sprintf(msg, params...)
+					} else {
+						errMessages[field][key] = msg
+					}
 				}
 			}
 		}
@@ -99,22 +141,20 @@ func (e *ErrorMap) ToMessages(messages map[string]string) map[string]map[string]
 }
 
 // NonEmpty check that the value is not a zeroed value depending on its type
-type NonEmpty struct {
-	Value interface{}
-}
+type NonEmpty struct{}
 
 // Validate value to not be a zeroed value, return error and empty slice of strings
-func (v NonEmpty) Validate() Error {
-	t := reflect.TypeOf(v.Value)
+func (validator NonEmpty) Validate(v interface{}) Error {
+	t := reflect.TypeOf(v)
 
 	switch t.Kind() {
 	default:
-		if reflect.DeepEqual(reflect.Zero(t).Interface(), v.Value) {
-			return &ValidationError{"nonZero", nil}
+		if reflect.DeepEqual(reflect.Zero(t).Interface(), v) {
+			return &ValidationError{map[string][]interface{}{"nonZero": nil}}
 		}
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan, reflect.String:
-		if reflect.ValueOf(v.Value).Len() == 0 {
-			return &ValidationError{"nonZero", nil}
+		if reflect.ValueOf(v).Len() == 0 {
+			return &ValidationError{map[string][]interface{}{"nonZero": nil}}
 		}
 	}
 

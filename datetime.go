@@ -5,13 +5,12 @@ import "time"
 // Before check if a time in Value is before the time in Constraint
 type Before struct {
 	Constraint time.Time
-	Value      time.Time
 }
 
 // Validate check if a time in Value is before the time in Constraint
-func (v Before) Validate() Error {
-	if !v.Value.Before(v.Constraint) {
-		return &ValidationError{"before", []interface{}{v.Value.String(), v.Constraint.String()}}
+func (validator Before) Validate(v interface{}) Error {
+	if !v.(time.Time).Before(validator.Constraint) {
+		return &ValidationError{map[string][]interface{}{"before": []interface{}{v.(time.Time).String(), validator.Constraint.String()}}}
 	}
 
 	return nil
@@ -20,13 +19,12 @@ func (v Before) Validate() Error {
 // After check if a time in Value is before the time in Constraint
 type After struct {
 	Constraint time.Time
-	Value      time.Time
 }
 
 // Validate check if a time in Value is after the time in Constraint
-func (v After) Validate() Error {
-	if !v.Value.After(v.Constraint) {
-		return &ValidationError{"after", []interface{}{v.Value.String(), v.Constraint.String()}}
+func (validator After) Validate(v interface{}) Error {
+	if !v.(time.Time).After(validator.Constraint) {
+		return &ValidationError{map[string][]interface{}{"after": []interface{}{v.(time.Time).String(), validator.Constraint.String()}}}
 	}
 
 	return nil

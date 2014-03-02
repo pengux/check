@@ -4,7 +4,7 @@ import "fmt"
 
 func ExampleValidator() {
 	username := "invalid*"
-	e := &ErrorMap{}
-	e.Add("username", CustomStringContainValidator{"admin", username})
-	fmt.Println(e.ToMessages(ErrorMessages))
+	validator := CustomStringContainValidator{"admin"}
+	e := validator.Validate(username)
+	fmt.Println(ErrorMessages[e.Error()])
 }

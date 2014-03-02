@@ -4,10 +4,10 @@
 [Documentation](http://godoc.org/github.com/pengux/check)
 
 ## Design goals
+- Composite pattern
 - Multiple constraints on the same value by applying multiple validators
 - Easy to create custom validators
 - Easy to customize error messages
-- Minimal usage of reflect package
 
 ## Usage
 ```bash
@@ -21,19 +21,32 @@ cd $GOPATH/src/github.com/pengux/check && go test
 ```
 
 
-To validate your data, create a new ErrorMap and add validators to it:
+To validate your data, create a new Struct and add validators to it:
 
 ```go
+type User struct {
+	Username string
+}
+
 func main() {
-	username := "invalid*"
-	e := &check.ErrorMap{}
-	e.Add("username", check.Regex{"[a-zA-Z0-9]+$", username})
-	e.Add("username", check.NonEmpty{username}, check.MinChar{10, username}) // Add multiple validators at the same time
+	u := &User{
+		Username: "invalid*",
+	}
+
+	s := Struct{
+		"Username": Composite{
+			NonEmpty{},
+			Regex{`^[a-zA-Z0-9]+$`},
+			MinChar{10},
+		},
+	}
+
+	e := s.Validate(*u)
 
 	if e.HasErrors() {
-		err, ok := e.GetErrorsByKey("username")
+		err, ok := e.GetErrorsByKey("Username")
 		if !ok {
-			panic("key username does not exists")
+			panic("key 'Username' does not exists")
 		}
 		fmt.Println(err)
 	}
@@ -46,12 +59,18 @@ To use your own custom validator, just implement the Validator interface:
 ```go
 type CustomStringContainValidator struct {
 	Constraint string
-	Value      string
 }
 
-func (v CustomStringContainValidator) Validate() check.Error {
-	if !strings.Contains(v.Value, v.Constraint) {
-		return &check.ValidationError{"customStringContainValidator", []interface{}{v.Value, v.Constraint}}
+func (validator CustomStringContainValidator) Validate(v interface{}) Error {
+	if !strings.Contains(v.(string), validator.Constraint) {
+		return &ValidationError{
+			map[string][]interface{}{
+				"ecustomStringContainValidato": []interface{}{
+					v.(string),
+					validator.Constraint,
+				},
+			},
+		}
 	}
 
 	return nil
@@ -59,9 +78,9 @@ func (v CustomStringContainValidator) Validate() check.Error {
 
 func main() {
 	username := "invalid*"
-	e := &check.ErrorMap{}
-	e.Add("username", CustomStringContainValidator{"admin", username})
-	fmt.Println(e.ToMessages(check.ErrorMessages))
+	validator := CustomStringContainValidator{"admin"}
+	e := validator.Validate(username)
+	fmt.Println(ErrorMessages[e.Error()])
 }
 ```
 

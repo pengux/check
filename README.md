@@ -33,15 +33,15 @@ func main() {
 		Username: "invalid*",
 	}
 
-	s := Struct{
-		"Username": Composite{
-			NonEmpty{},
-			Regex{`^[a-zA-Z0-9]+$`},
-			MinChar{10},
+	s := check.Struct{
+		"Username": check.Composite{
+			check.NonEmpty{},
+			check.Regex{`^[a-zA-Z0-9]+$`},
+			check.MinChar{10},
 		},
 	}
 
-	e := s.Validate(*u)
+	e := s.Validate(u)
 
 	if e.HasErrors() {
 		err, ok := e.GetErrorsByKey("Username")
@@ -61,16 +61,9 @@ type CustomStringContainValidator struct {
 	Constraint string
 }
 
-func (validator CustomStringContainValidator) Validate(v interface{}) Error {
+func (validator CustomStringContainValidator) Validate(v interface{}) check.Error {
 	if !strings.Contains(v.(string), validator.Constraint) {
-		return &ValidationError{
-			map[string][]interface{}{
-				"ecustomStringContainValidato": []interface{}{
-					v.(string),
-					validator.Constraint,
-				},
-			},
-		}
+		return check.NewValidationError("customStringContainValidator", v, validator.Constraint)
 	}
 
 	return nil
@@ -80,7 +73,7 @@ func main() {
 	username := "invalid*"
 	validator := CustomStringContainValidator{"admin"}
 	e := validator.Validate(username)
-	fmt.Println(ErrorMessages[e.Error()])
+	fmt.Println(check.ErrorMessages[e.Error()])
 }
 ```
 

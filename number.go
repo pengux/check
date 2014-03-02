@@ -11,28 +11,14 @@ type LowerThan struct {
 func (validator LowerThan) Validate(v interface{}) Error {
 	switch val := v.(type) {
 	default:
-		return &ValidationError{map[string][]interface{}{"NaN": nil}}
+		return NewValidationError("NaN")
 	case int:
 		if validator.Constraint <= float64(val) {
-			return &ValidationError{
-				map[string][]interface{}{
-					"lowerThan": []interface{}{
-						strconv.Itoa(val),
-						strconv.FormatFloat(validator.Constraint, 'f', -1, 64),
-					},
-				},
-			}
+			return NewValidationError("lowerThan", strconv.Itoa(val), strconv.FormatFloat(validator.Constraint, 'f', -1, 64))
 		}
 	case float64:
 		if validator.Constraint <= val {
-			return &ValidationError{
-				map[string][]interface{}{
-					"lowerThan": []interface{}{
-						strconv.FormatFloat(val, 'f', -1, 64),
-						strconv.FormatFloat(validator.Constraint, 'f', -1, 64),
-					},
-				},
-			}
+			return NewValidationError("lowerThan", strconv.FormatFloat(val, 'f', -1, 64), strconv.FormatFloat(validator.Constraint, 'f', -1, 64))
 		}
 	}
 
@@ -48,28 +34,14 @@ type GreaterThan struct {
 func (validator GreaterThan) Validate(v interface{}) Error {
 	switch val := v.(type) {
 	default:
-		return &ValidationError{map[string][]interface{}{"NaN": nil}}
+		return NewValidationError("NaN")
 	case int:
 		if validator.Constraint >= float64(val) {
-			return &ValidationError{
-				map[string][]interface{}{
-					"greaterThan": []interface{}{
-						strconv.Itoa(val),
-						strconv.FormatFloat(validator.Constraint, 'f', -1, 64),
-					},
-				},
-			}
+			return NewValidationError("greaterThan", strconv.Itoa(val), strconv.FormatFloat(validator.Constraint, 'f', -1, 64))
 		}
 	case float64:
 		if validator.Constraint >= val {
-			return &ValidationError{
-				map[string][]interface{}{
-					"greaterThan": []interface{}{
-						strconv.FormatFloat(val, 'f', -1, 64),
-						strconv.FormatFloat(validator.Constraint, 'f', -1, 64),
-					},
-				},
-			}
+			return NewValidationError("greaterThan", strconv.FormatFloat(val, 'f', -1, 64), strconv.FormatFloat(validator.Constraint, 'f', -1, 64))
 		}
 	}
 

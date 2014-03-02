@@ -1,6 +1,8 @@
 package check
 
 import (
+	"encoding/json"
+	"log"
 	"strings"
 	"testing"
 	"time"
@@ -12,14 +14,7 @@ type CustomStringContainValidator struct {
 
 func (validator CustomStringContainValidator) Validate(v interface{}) Error {
 	if !strings.Contains(v.(string), validator.Constraint) {
-		return &ValidationError{
-			map[string][]interface{}{
-				"ecustomStringContainValidato": []interface{}{
-					v.(string),
-					validator.Constraint,
-				},
-			},
-		}
+		return NewValidationError("customStringContainValidator", v, validator.Constraint)
 	}
 
 	return nil
@@ -101,8 +96,8 @@ func TestIntegration(t *testing.T) {
 		t.Errorf("Expected proper error message")
 	}
 
-	// json, _ := json.MarshalIndent(errMessages, "", "	")
-	// log.Println(string(json))
+	json, _ := json.MarshalIndent(errMessages, "", "	")
+	log.Println(string(json))
 
 	e = validUser.Validate()
 	if e.HasErrors() {

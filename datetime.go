@@ -10,7 +10,7 @@ type Before struct {
 // Validate check if a time in Value is before the time in Constraint
 func (validator Before) Validate(v interface{}) Error {
 	if !v.(time.Time).Before(validator.Constraint) {
-		return &ValidationError{map[string][]interface{}{"before": []interface{}{v.(time.Time).String(), validator.Constraint.String()}}}
+		return NewValidationError("before", v.(time.Time).String(), validator.Constraint.String())
 	}
 
 	return nil
@@ -24,7 +24,7 @@ type After struct {
 // Validate check if a time in Value is after the time in Constraint
 func (validator After) Validate(v interface{}) Error {
 	if !v.(time.Time).After(validator.Constraint) {
-		return &ValidationError{map[string][]interface{}{"after": []interface{}{v.(time.Time).String(), validator.Constraint.String()}}}
+		return NewValidationError("after", v.(time.Time).String(), validator.Constraint.String())
 	}
 
 	return nil

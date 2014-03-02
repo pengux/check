@@ -106,6 +106,15 @@ func (e ValidationError) Error() string {
 // ErrorMap returns the error map
 func (e ValidationError) ErrorMap() map[string][]interface{} { return e.errorMap }
 
+// NewValidationError create and return a ValidationError
+func NewValidationError(key string, params ...interface{}) *ValidationError {
+	return &ValidationError{
+		map[string][]interface{}{
+			key: params,
+		},
+	}
+}
+
 // StructError is a map with validation errors
 type StructError map[string][]Error
 
@@ -155,11 +164,11 @@ func (validator NonEmpty) Validate(v interface{}) Error {
 	switch t.Kind() {
 	default:
 		if reflect.DeepEqual(reflect.Zero(t).Interface(), v) {
-			return &ValidationError{map[string][]interface{}{"nonZero": nil}}
+			return NewValidationError("nonZero")
 		}
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan, reflect.String:
 		if reflect.ValueOf(v).Len() == 0 {
-			return &ValidationError{map[string][]interface{}{"nonZero": nil}}
+			return NewValidationError("nonZero")
 		}
 	}
 

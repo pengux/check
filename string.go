@@ -2,7 +2,6 @@ package check
 
 import (
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -14,13 +13,7 @@ type MinChar struct {
 // Validate check value against constraint
 func (validator MinChar) Validate(v interface{}) Error {
 	if len(v.(string)) < validator.Constraint {
-		return &ValidationError{
-			map[string][]interface{}{
-				"minChar": []interface{}{
-					strconv.Itoa(validator.Constraint),
-				},
-			},
-		}
+		return NewValidationError("minChar", validator.Constraint)
 	}
 
 	return nil
@@ -34,13 +27,7 @@ type MaxChar struct {
 // Validate check value against constraint
 func (validator MaxChar) Validate(v interface{}) Error {
 	if len(v.(string)) > validator.Constraint {
-		return &ValidationError{
-			map[string][]interface{}{
-				"maxChar": []interface{}{
-					strconv.Itoa(validator.Constraint),
-				},
-			},
-		}
+		return NewValidationError("maxChar", validator.Constraint)
 	}
 
 	return nil
@@ -54,13 +41,7 @@ type Email struct {
 // Validate email addresses
 func (validator Email) Validate(v interface{}) Error {
 	if !strings.Contains(v.(string), "@") || string(v.(string)[0]) == "@" || string(v.(string)[len(v.(string))-1]) == "@" {
-		return &ValidationError{
-			map[string][]interface{}{
-				"email": []interface{}{
-					v.(string),
-				},
-			},
-		}
+		return NewValidationError("email", v)
 	}
 
 	return nil
@@ -79,14 +60,7 @@ func (validator Regex) Validate(v interface{}) Error {
 	}
 
 	if !regex.MatchString(v.(string)) {
-		return &ValidationError{
-			map[string][]interface{}{
-				"regex": []interface{}{
-					v.(string),
-					validator.Constraint,
-				},
-			},
-		}
+		return NewValidationError("regex", v, validator.Constraint)
 	}
 
 	return nil

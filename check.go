@@ -19,6 +19,7 @@ var (
 		"maxChar":     "too long, minimum %v characters",
 		"email":       "'%v' is an invalid email address",
 		"regex":       "'%v' does not match '%v'",
+		"uuid":        "'%v' is an invalid uuid",
 	}
 )
 

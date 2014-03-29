@@ -35,8 +35,7 @@ func (validator MaxChar) Validate(v interface{}) Error {
 
 // Email is a constraint to do a simple validation for email addresses, it only check if the string contains "@"
 // and that it is not in the first or last character of the string
-type Email struct {
-}
+type Email struct{}
 
 // Validate email addresses
 func (validator Email) Validate(v interface{}) Error {
@@ -61,6 +60,20 @@ func (validator Regex) Validate(v interface{}) Error {
 
 	if !regex.MatchString(v.(string)) {
 		return NewValidationError("regex", v, validator.Constraint)
+	}
+
+	return nil
+}
+
+// UUID verify a string in the UUID format xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx
+type UUID struct{}
+
+// Validate checks a string as correct UUID format
+func (validator UUID) Validate(v interface{}) Error {
+	regex := regexp.MustCompile("^[a-z0-9]{8}-[a-z0-9]{4}-[1-5][a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$")
+
+	if !regex.MatchString(v.(string)) {
+		return NewValidationError("uuid", v)
 	}
 
 	return nil

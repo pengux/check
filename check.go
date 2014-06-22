@@ -131,7 +131,7 @@ func (e StructError) GetErrorsByKey(key string) ([]Error, bool) {
 }
 
 // ToMessages convert StructError to a map of field and their validation key with proper error messages
-func (e StructError) ToMessages(messages map[string]string) map[string]map[string]string {
+func (e StructError) ToMessages() map[string]map[string]string {
 	errMessages := make(map[string]map[string]string)
 
 	for field, validationErrors := range e {

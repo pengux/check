@@ -47,6 +47,11 @@ func (s Struct) Validate(v interface{}) StructError {
 	e := StructError{}
 	for fieldname, validator := range s {
 		field := val.FieldByName(fieldname)
+
+		if field.Kind() == reflect.Invalid {
+			panic("invalid struct field name \""+fieldname+"\".")
+		}
+
 		if err := validator.Validate(field.Interface()); err != nil {
 			if _, ok := e[fieldname]; !ok {
 				e[fieldname] = make([]Error, 0)

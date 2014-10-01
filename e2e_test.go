@@ -89,7 +89,7 @@ func TestIntegration(t *testing.T) {
 		}
 	}
 
-	errMessages := e.ToMessages(ErrorMessages)
+	errMessages := e.ToMessages()
 	if errMessages["Name"]["nonZero"] != ErrorMessages["nonZero"] {
 		t.Errorf("Expected proper error message")
 	}

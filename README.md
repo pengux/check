@@ -53,7 +53,6 @@ func main() {
 }
 ```
 
-
 To use your own custom validator, just implement the Validator interface:
 
 ```go
@@ -77,26 +76,13 @@ func main() {
 }
 ```
 
-
-To use default error messages, pass in the package variable ErrorMessages:
-
-```go
-errMessages := e.ToMessages(check.ErrorMessages)
-fmt.Println(errMessages)
-```
-
-
 To use custom error messages, either overwrite the package variable `ErrorMessages` or create your own `map[string]string`:
 
 ```go
 check.ErrorMessages["minChar"] := "the string must be minimum %v characters long"
-errMessages := errs.ToMessages(check.ErrorMessages)
-fmt.Println(errMessages)
-
-errMessages := errs.ToMessages(map[string]string{"minChar": "the string must be minimum %v characters long"})
+errMessages := errs.ToMessages()
 fmt.Println(errMessages)
 ```
-
 
 For more example code check the file [`e2e_test.go`](https://github.com/pengux/check/blob/master/e2e_test.go).
 

@@ -1,7 +1,8 @@
-[![baby-gopher](https://raw2.github.com/drnic/babygopher-site/gh-pages/images/babygopher-badge.png)](http://www.babygopher.org)
 
 # check - Go package for data validation
 [Documentation](http://godoc.org/github.com/pengux/check)
+
+[![Build Status](https://travis-ci.org/pengux/check.svg?branch=master)](https://travis-ci.org/pengux/check) [![GoDoc](https://godoc.org/github.com/pengux/check?status.svg)](https://godoc.org/github.com/pengux/check)
 
 ## Design goals
 - Composite pattern

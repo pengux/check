@@ -7,8 +7,5 @@ go:
   - release
   - tip
 
-before_install:
-  - go get
-
 script:
   - go test -v

@@ -1,6 +1,5 @@
 
 # check - Go package for data validation
-[Documentation](http://godoc.org/github.com/pengux/check)
 
 [![Build Status](https://travis-ci.org/pengux/check.svg?branch=master)](https://travis-ci.org/pengux/check) [![GoDoc](https://godoc.org/github.com/pengux/check?status.svg)](https://godoc.org/github.com/pengux/check)
 

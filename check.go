@@ -49,7 +49,7 @@ func (s Struct) Validate(v interface{}) StructError {
 		field := val.FieldByName(fieldname)
 
 		if field.Kind() == reflect.Invalid {
-			panic("invalid struct field name \""+fieldname+"\".")
+			panic("invalid struct field name \"" + fieldname + "\".")
 		}
 
 		if err := validator.Validate(field.Interface()); err != nil {
@@ -127,6 +127,19 @@ type StructError map[string][]Error
 // HasErrors return true if the ErrorMap has errors
 func (e StructError) HasErrors() bool {
 	return len(e) > 0
+}
+
+// Error satisfy error interface. Will return a concatenated
+// strings of errors separated by "\n"
+func (e StructError) Error() string {
+	var s []string
+	for _, v := range e {
+		for _, err := range v {
+			s = append(s, err.Error())
+		}
+	}
+
+	return strings.Join(s, "\n")
 }
 
 // GetErrorsByKey return all errors for a specificed key

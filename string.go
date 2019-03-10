@@ -34,12 +34,12 @@ func (validator MaxChar) Validate(v interface{}) Error {
 }
 
 // Email is a constraint to do a simple validation for email addresses, it only check if the string contains "@"
-// and that it is not in the first or last character of the string
+// and that it is not in the first or last character of the string. Also if there is only one "@" and if there is a "." in the string after the "@".
 type Email struct{}
 
 // Validate email addresses
 func (validator Email) Validate(v interface{}) Error {
-	if !strings.Contains(v.(string), "@") || string(v.(string)[0]) == "@" || string(v.(string)[len(v.(string))-1]) == "@" {
+	if !strings.Contains(v.(string), "@") || string(v.(string)[0]) == "@" || string(v.(string)[len(v.(string))-1]) == "@" || string(v.(string)[len(v.(string))-1]) == "." || len(strings.Split(v.(string), "@")) != 2 || !strings.Contains(strings.Split(v.(string), "@")[1], ".") || string(v.(string)[len(v.(string))-1]) == "." {
 		return NewValidationError("email", v)
 	}
 

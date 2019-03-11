@@ -39,8 +39,27 @@ type Email struct{}
 
 // Validate email addresses
 func (validator Email) Validate(v interface{}) Error {
-	if !strings.Contains(v.(string), "@") || string(v.(string)[0]) == "@" || string(v.(string)[len(v.(string))-1]) == "@" || string(v.(string)[len(v.(string))-1]) == "." || len(strings.Split(v.(string), "@")) != 2 || !strings.Contains(strings.Split(v.(string), "@")[1], ".") || string(v.(string)[len(v.(string))-1]) == "." {
-		return NewValidationError("email", v)
+	err := NewValidationError("email", v)
+
+	s, ok := v.(string)
+	if !ok {
+		return err
+	}
+
+	email := []rune(s)
+	at := '@'
+	dot := '.'
+	firstChar := email[0]
+	lastChar := email[len(email)-1]
+	emailParts := strings.Split(string(s), "@")
+
+	if len(emailParts) != 2 || // not containing "@"
+		firstChar == at || // "@bar"
+		lastChar == at || // "foo@"
+		lastChar == dot || // "foo@bar."
+		!strings.ContainsRune(emailParts[1], dot) || // "foo@bar"
+		[]rune(emailParts[1])[0] == dot { // "foo@.bar"
+		return err
 	}
 
 	return nil
